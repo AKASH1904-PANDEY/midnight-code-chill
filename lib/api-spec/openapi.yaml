@@ -1,0 +1,175 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: events
+    description: Public event registration
+  - name: organizer
+    description: Private event management
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /rsvps/availability:
+    get:
+      operationId: getRsvpAvailability
+      tags: [events]
+      summary: Get current RSVP availability
+      responses:
+        "200":
+          description: Current public registration availability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RsvpAvailability"
+  /rsvps:
+    post:
+      operationId: createRsvp
+      tags: [events]
+      summary: Register for the event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RsvpInput"
+      responses:
+        "201":
+          description: RSVP confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RsvpConfirmation"
+        "400":
+          description: Invalid RSVP details
+        "409":
+          description: Email already registered, registration closed, or event full
+  /organizer/summary:
+    get:
+      operationId: getOrganizerSummary
+      tags: [organizer]
+      summary: Get private event and RSVP totals
+      responses:
+        "200":
+          description: Organizer dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizerSummary"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Organizer access required
+  /organizer/rsvps:
+    get:
+      operationId: getOrganizerRsvps
+      tags: [organizer]
+      summary: List private attendee registrations
+      responses:
+        "200":
+          description: Attendee registrations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrganizerRsvp"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Organizer access required
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    RsvpInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        email:
+          type: string
+          format: email
+          maxLength: 254
+      required: [name, email]
+    RsvpAvailability:
+      type: object
+      properties:
+        capacity:
+          type: integer
+        registered:
+          type: integer
+        spotsRemaining:
+          type: integer
+        registrationOpen:
+          type: boolean
+        deadline:
+          type: string
+      required: [capacity, registered, spotsRemaining, registrationOpen, deadline]
+    RsvpConfirmation:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, createdAt]
+    OrganizerSummary:
+      type: object
+      properties:
+        eventName:
+          type: string
+        capacity:
+          type: integer
+        registered:
+          type: integer
+        spotsRemaining:
+          type: integer
+        registrationOpen:
+          type: boolean
+        deadline:
+          type: string
+      required: [eventName, capacity, registered, spotsRemaining, registrationOpen, deadline]
+    OrganizerRsvp:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, email, createdAt]
+

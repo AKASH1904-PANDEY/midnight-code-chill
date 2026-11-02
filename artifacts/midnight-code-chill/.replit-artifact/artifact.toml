@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Midnight Code & Chill"
+description = "A public event page with private RSVP management for Midnight Code & Chill, a late-night campus coding session."
+version = "1.0.0"
+id = "artifacts/midnight-code-chill"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19398
+
+[services.development]
+run = "pnpm --filter @workspace/midnight-code-chill run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/midnight-code-chill", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/midnight-code-chill/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19398"
+BASE_PATH = "/"
